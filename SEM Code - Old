@@ -1,0 +1,47 @@
+Note: This is code from a project looking at fungal community composition in desert grasslands. 
+- sobs, sobs1 - richness
+- site - site of the plots
+- trt - treatment, drought or no drought
+- species - grass species
+- site*trt, etc - combinations of factors meaning the interaction between the factors
+
+#### RICHNESS -------------
+#make sure that site, gradient, and species are understood to be factors by R
+
+#need to log(sobs) for normality
+edge$sobsl<-log(edge$sobs)
+m.r.EDGE<-lm(sobsl~site+trt+species+site*trt+species*trt,data=edge)
+#analysis of deviance results for the mixed model
+Anova(m.r.EDGE,type=3)
+#site is significant
+
+
+#test analysis assumptions
+#normality of residuals
+hist(resid(m.r.EDGE))
+qqnorm(resid(m.r.EDGE))
+shapiro.test(resid(m.r.EDGE))
+# one high outlier
+#note: cut-off for Shapiro is recommended at p=0.01
+#as long as p>0.01, normality assumption is met
+
+#homogeneity of variances
+plot(m.r.EDGE)
+
+####Hit <Return> to see next plot: 
+#looks fine, should not show any pattern
+
+#visualize the model
+visreg(m.r.EDGE,"trt",by="species") ## figure 1
+#not a lot of difference here
+library(emmeans)
+emmeans(m.r.EDGE,pairwise~trt)
+emmeans(m.r.EDGE,pairwise~site)
+#CPR-HAR, CPR-HPG, CPR-SEVB, CPR-SEVG, HAR-SEVB, HAR-SEVG, HPG-SEVB, HPG-KNZ, HPG-SEVB, HPG-SEBG, KNZ-SEVB, KNZ-SEVG, SEVB-SEVG are all significant once you log(sobs)
+#by site, not species; pairwise comparison of sites to each other
+visreg(m.r.EDGE,"site",main="Figure 1",xlab="Site",ylab="Log OTUs Observed") ## figure 2
+
+#ANGE, SCSC look like they could be significant
+emmeans(m.r.EDGE,pairwise~trt|species)  ## BOER and BOGR different than each other, no other pairs significant
+#no significance
+
