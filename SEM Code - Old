@@ -45,3 +45,6 @@ visreg(m.r.EDGE,"site",main="Figure 1",xlab="Site",ylab="Log OTUs Observed") ## 
 emmeans(m.r.EDGE,pairwise~trt|species)  ## BOER and BOGR different than each other, no other pairs significant
 #no significance
 
+More checks for outliers
+outlierTest(m.c.EDGE.lat)
+leveragePlots(m.c.EDGE.lat)
