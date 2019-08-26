@@ -1,0 +1,88 @@
+> modely<-lm((Ammo)~pH2012+Ca2012,data = michigan)
+> Anova(modely)
+Error in Anova(modely) : could not find function "Anova"
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+           Df  Sum Sq Mean Sq F value   Pr(>F)   
+pH2012      1  0.0212 0.02124  0.1151 0.734841   
+Ca2012      1  1.5044 1.50444  8.1537 0.004879 **
+Residuals 157 28.9681 0.18451                    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> structural<-read.csv("c:/Users/User/Documents/researchdata")
+Error in file(file, "rt") : cannot open the connection
+In addition: Warning message:
+In file(file, "rt") :
+  cannot open file 'c:/Users/User/Documents/researchdata': No such file or directory
+> structural<-read.csv("c:/Users/User/Documents/researchdata.csv")
+> View(structural)
+> modely<-lm((Ammo)~pH2012+Ca2012+SoilMoisture,data = structural)
+> modely<-lm((Ammo)~pH2012+Ca2012+Mg2012+K2012,data = structural)
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+           Df Sum Sq Mean Sq F value   Pr(>F)   
+pH2012      1  0.111 0.11124  0.5618 0.454606   
+Ca2012      1  1.708 1.70842  8.6288 0.003791 **
+Mg2012      1  0.063 0.06310  0.3187 0.573163   
+K2012       1  0.247 0.24653  1.2452 0.266127   
+Residuals 162 32.074 0.19799                    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> modely<-lm((Ammo)~SoilMoisture+SDTrt+pH2012+Ca2012+Mg2012+K2012,data = structural)
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+              Df Sum Sq Mean Sq F value  Pr(>F)  
+SoilMoisture   1  1.151 1.15053  5.7736 0.01741 *
+SDTrt          1  0.003 0.00285  0.0143 0.90488  
+pH2012         1  0.177 0.17730  0.8898 0.34697  
+Ca2012         1  0.664 0.66404  3.3323 0.06980 .
+Mg2012         1  0.067 0.06691  0.3358 0.56309  
+K2012          1  0.258 0.25819  1.2957 0.25671  
+Residuals    160 31.884 0.19927                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> modely<-lm((Ammo)~SoilMoisture++Ca2012,data = structural)
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+              Df Sum Sq Mean Sq F value  Pr(>F)  
+SoilMoisture   1  1.151 1.15053   5.849 0.01668 *
+Ca2012         1  0.794 0.79351   4.034 0.04623 *
+Residuals    164 32.260 0.19670                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> modely<-lm((Ammo)~SoilMoisture+Ca2012,data = structural)
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+              Df Sum Sq Mean Sq F value  Pr(>F)  
+SoilMoisture   1  1.151 1.15053   5.849 0.01668 *
+Ca2012         1  0.794 0.79351   4.034 0.04623 *
+Residuals    164 32.260 0.19670                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> modely<-lm((Type)~SoilMoisture+Ca2012,data = structural)
+
+
+modely<-lm((Ammo)~SoilMoisture+cadelta+GDTrt*SDTrt,data = structural)
+> anova(modely)
+Analysis of Variance Table
+
+Response: (Ammo)
+              Df  Sum Sq Mean Sq F value    Pr(>F)    
+SoilMoisture   1  1.1505  1.1505  8.8528  0.003378 ** 
+cadelta        1  0.7952  0.7952  6.1188  0.014413 *  
+GDTrt          1 10.7360 10.7360 82.6092 3.534e-16 ***
+SDTrt          1  0.4465  0.4465  3.4354  0.065644 .  
+GDTrt:SDTrt    1  0.1515  0.1515  1.1655  0.281940    
+Residuals    161 20.9239  0.1300                    
+
+
