@@ -2,11 +2,15 @@
 library(lavaan)
 library(car)
 library(emmeans)
+library(semPlot) ##makes good diagrams with numbers
+##ex. semPaths(fit2,whatLabels = "std",edge.label.cex = 1) ##need to read up on this, not sure what this diagram shows
 
 ##read in data and prepare
 garden<-read.csv(file.choose())
-garden$GDTrt<-as.factor(garden$GDTrt)
-garden$SDTrt<-as.factor(garden$SDTrt)
+##garden$GDTrt<-as.factor(garden$GDTrt) don't use this right now
+##garden$SDTrt<-as.factor(garden$SDTrt)
+garden$GDTrt<-as.numeric(garden$GDTrt)
+garden$SDTrt<-as.numeric(garden$SDTrt)
 
 #clean the dataset, remove outlier obs 71
 garden2<-garden[1:166,]
@@ -17,8 +21,11 @@ garden$Ca2012n<-scale(garden$Ca2012)
 garden$Ca08n<-scale(garden$Ca08)
 garden$Ca2012<-garden$Ca2012n
 garden$Ca08<-garden$Ca08n
+garden$K08n<-scale(garden$K08)
+garden$K2012n<-scale(garden$K2012)
 
-##model 1
+
+##model 1 - doesn't converge when K is included!
 model1<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
                   nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
                   SoilAg =~ v5*GMW + v5*  MWD
@@ -40,9 +47,9 @@ model1<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10
 fit1<-cfa(model1,data=garden, estimator = "MLM")
 summary(fit1,fit.measures=TRUE) #report p-value, robust CFI, and robust SRMR in table
 
-##model 2
+##model 2 does converge with K included
 model2<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture 
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture + v6*K08n + v6*K2012n
                   SoilAg =~ v5*GMW + v5*MWD
                   
 
@@ -51,7 +58,8 @@ model2<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10
                  nutrients ~ microbes
                 
 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -68,7 +76,7 @@ summary(fit2,fit.measures=TRUE)
 
 ##model3
 model3<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                    nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture 
+                    nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture +v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
 
@@ -78,7 +86,8 @@ model3<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10
                  microbes ~ GDTrt + SDTrt
                 
 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -91,17 +100,18 @@ model3<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10
 
 
 fit3<-cfa(model3,data=garden, estimator = "MLM")
-summary(model3,fit.measures=TRUE)
+summary(fit3,fit.measures=TRUE)
 
 ##model 4
 model4<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture +v6*K08n +v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + microbes
                   microbes ~ GDTrt + SDTrt
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -118,13 +128,14 @@ summary(fit4,fit.measures=TRUE)
 
 #soilag by chem, chem by everything else
 model5<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture +v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients 
                   nutrients ~ GDTrt + SDTrt + microbes
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -134,19 +145,29 @@ model5<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10
                GMW~~MWD
            '
 
+library(dagitty)
+g<-dagitty("dag{GDTrt-> Diversity
+                MDTrt-> Diversity
+                SoilMoisture->SoilFactors
+                SporeAbundance -> FungalAbundance
+                Diversity -> SoilAg
+                SoilFactors -> SoilAg}")
+plot(graphLayout(g))
+
 
 fit5<-cfa(model5,data=garden, estimator = "MLM")
 summary(fit5,fit.measures=TRUE)
 
 #soil ag by microbes and chem, chem by plants
 model6<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture +v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + microbes
                  nutrients ~ GDTrt + SDTrt
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -163,13 +184,14 @@ summary(fit6,fit.measures=TRUE)
 
 ##model 7
 model7<-   '    
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture +v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + GDTrt + SDTrt
                 
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -205,13 +227,14 @@ AIC(cfafite) ##2521
 
 #soilag by chem, chem by plants, no microbes
 model9<-   '    
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture+v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients
                 nutrients ~ GDTrt + SDTrt
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -228,13 +251,14 @@ AIC(cfafite) ##2521
 
 #soilag~chem +GD, chemistry~ microbes,exclude SD
 model10<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture+v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + GDTrt
                  nutrients ~ microbes
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -250,13 +274,14 @@ summary(fit10,fit.measures=TRUE)
 
 # same thing, no GD
 model11<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture+v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + SDTrt
                  nutrients ~ microbes
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -274,12 +299,13 @@ summary(fit11,fit.measures=TRUE)
 
 ##soil ag by nutrients, microbes SD.
 model12<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture+v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + microbes + SDTrt
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
@@ -297,12 +323,13 @@ summary(fit12,fit.measures=TRUE)
 
 ##soil ag by nutrients, microbes GD.
 model13<-   '    microbes =~ v1*SporeAbun09+ v1*SporeAbun10 
-                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture
+                  nutrients =~ v2*Mg2012+ v2*Mg08+ v3*Ca2012+ v3*Ca08+ v4*pH2012+ v4*pH08 + SoilMoisture+v6*K08n+v6*K2012n
                   SoilAg =~ v5*GMW + v5*  MWD
                   
                   SoilAg  ~ nutrients + microbes + GDTrt
                 
-               
+               K08n~~K2012n
+               pH08+pH2012~~K08n+K2012n
                pH08+pH2012~~Mg08+Mg2012
                pH08+pH2012~~Ca08+Ca2012
                Mg08~~Mg2012
